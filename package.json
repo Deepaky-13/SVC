@@ -1,0 +1,15 @@
+{
+  "name": "svc",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.0.1"
+  }
+}
