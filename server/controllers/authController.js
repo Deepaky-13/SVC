@@ -4,6 +4,7 @@ import db from "../db/database.js";
 /* ================= LOGIN ================= */
 export const login = (req, res) => {
   const { username, password } = req.body;
+  console.log(req.body);
 
   /* ================= STATIC ADMIN ================= */
   if (username === "admin" && password === "admin123") {

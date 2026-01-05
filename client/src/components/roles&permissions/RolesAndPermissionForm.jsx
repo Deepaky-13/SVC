@@ -6,6 +6,12 @@ const SIDEBAR_PERMISSIONS = [
   { key: "users_manage", label: "Users" },
   { key: "access_manage", label: "Access Control" },
   { key: "settings_view", label: "Settings" },
+  { key: "categories_view", label: "Categories" },
+  { key: "products_view", label: "Products" },
+  { key: "purchases_view", label: "Purchases" },
+  { key: "stocks_view", label: "Stocks" },
+  { key: "sales_view", label: "Sales" },
+  { key: "services_view", label: "Services" },
 ];
 
 const ROLES = ["Admin", "Staff"];
