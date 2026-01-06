@@ -90,64 +90,79 @@ const initDatabase = () => {
 
   //* ---------------- SALES ----------------
   db.run(`
-    CREATE TABLE IF NOT EXISTS sales (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_name TEXT,
-      bill_no TEXT,
-      total_amount REAL,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS sales (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER NOT NULL,
+    bill_no TEXT,
+    total_amount REAL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
+  )
+`);
 
   //* ---------------- SALES ITEMS ----------------
   db.run(`
-    CREATE TABLE IF NOT EXISTS sales_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sale_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      selling_price REAL NOT NULL,
-      quantity INTEGER NOT NULL,
-      gst REAL,
-      FOREIGN KEY (sale_id) REFERENCES sales(id),
-      FOREIGN KEY (product_id) REFERENCES products(id)
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS sales_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sale_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    selling_price REAL NOT NULL,
+    quantity INTEGER NOT NULL,
+    gst REAL,
+    FOREIGN KEY (sale_id) REFERENCES sales(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+  )
+`);
+
+  //* ---------------- SERVICE JOBS & ITEMS ----------------
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS service_jobs (
+  CREATE TABLE IF NOT EXISTS service_jobs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER NOT NULL,
+    device_model TEXT,
+    imei TEXT,
+    problem TEXT,
+    estimated_cost REAL,
+    advance_amount REAL DEFAULT 0,
+    technician TEXT,
+    status TEXT DEFAULT 'RECEIVED',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
+  )
+`);
+
+  db.run(`
+  CREATE TABLE IF NOT EXISTS service_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    service_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    price REAL,
+    quantity INTEGER,
+    FOREIGN KEY (service_id) REFERENCES service_jobs(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+  )
+`);
+
+  db.run(`
+  CREATE TABLE IF NOT EXISTS service_invoice (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    service_id INTEGER NOT NULL,
+    service_charge REAL DEFAULT 0,
+    total_amount REAL NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (service_id) REFERENCES service_jobs(id)
+  )
+`);
+
+  /* ---------------- CUSTOMERS ---------------- */
+
+  db.run(`
+  CREATE TABLE IF NOT EXISTS customers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  customer_name TEXT NOT NULL,
-  phone TEXT,
-  device_model TEXT,
-  imei TEXT,
-  problem TEXT,
-  estimated_cost REAL,
-  advance_amount REAL DEFAULT 0,
-  technician TEXT,
-  status TEXT DEFAULT 'RECEIVED',
+  name TEXT NOT NULL,
+  phone TEXT UNIQUE NOT NULL,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
-)
-    `);
-  db.run(`
-    CREATE TABLE IF NOT EXISTS service_items (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  service_id INTEGER,
-  product_id INTEGER,
-  price REAL,
-  quantity INTEGER,
-  FOREIGN KEY (service_id) REFERENCES service_jobs(id),
-  FOREIGN KEY (product_id) REFERENCES products(id)
-);
-
-    `);
-
-  db.run(`CREATE TABLE IF NOT EXISTS service_invoice (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  service_id INTEGER,
-  service_charge REAL,
-  total_amount REAL,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (service_id) REFERENCES service_jobs(id)
 );
 `);
 

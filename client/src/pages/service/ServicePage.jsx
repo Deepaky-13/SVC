@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, Button } from "@mui/material";
-import ServiceList from "../../components/service/ServiceList";
 import ServiceForm from "../../components/service/SeriviceForm";
+import ServiceList from "../../components/service/ServiceList";
 
 export default function ServicePage() {
   const [open, setOpen] = useState(false);
@@ -11,11 +11,9 @@ export default function ServicePage() {
     <Box p={2}>
       <Box display="flex" justifyContent="flex-end" mb={2}>
         <Button variant="contained" onClick={() => setOpen(true)}>
-          + New Service Job
+          + New Service
         </Button>
       </Box>
-
-      <ServiceList refresh={refresh} />
 
       <ServiceForm
         open={open}
@@ -25,6 +23,8 @@ export default function ServicePage() {
           setRefresh(!refresh);
         }}
       />
+
+      <ServiceList refresh={refresh} />
     </Box>
   );
 }

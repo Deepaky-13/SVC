@@ -7,17 +7,21 @@ import {
   Button,
   Chip,
   Grid,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import customFetch from "../../utils/customFetch";
-import { generateInvoice } from "../../utils/invoiceGenerator"; // reuse printer
 import { generateServiceInvoiceA4 } from "../../utils/serviceInvoiceA4";
 
 export default function ServiceDetailsPage() {
-  const { id } = useParams(); // service_id
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const [service, setService] = useState(null);
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
   /* ---------------- FETCH SERVICE ---------------- */
@@ -25,7 +29,7 @@ export default function ServiceDetailsPage() {
     const fetchService = async () => {
       try {
         const res = await customFetch.get(`/services/${id}`);
-        setService(res.data);
+        setRows(res.data || []);
       } finally {
         setLoading(false);
       }
@@ -37,7 +41,7 @@ export default function ServiceDetailsPage() {
     return <Typography p={2}>Loading...</Typography>;
   }
 
-  if (!service) {
+  if (!rows.length) {
     return (
       <Box p={2}>
         <Button onClick={() => navigate(-1)}>← Back</Button>
@@ -45,6 +49,15 @@ export default function ServiceDetailsPage() {
       </Box>
     );
   }
+
+  /* HEADER INFO */
+  const header = rows[0];
+
+  /* PARTS TOTAL */
+  const partsTotal = rows.reduce(
+    (sum, r) => sum + (r.price || 0) * (r.quantity || 0),
+    0
+  );
 
   return (
     <Box p={2}>
@@ -61,11 +74,11 @@ export default function ServiceDetailsPage() {
           </Typography>
 
           <Chip
-            label={service.status}
+            label={header.status}
             color={
-              service.status === "DELIVERED"
+              header.status === "DELIVERED"
                 ? "success"
-                : service.status === "READY"
+                : header.status === "READY"
                 ? "warning"
                 : "default"
             }
@@ -74,48 +87,46 @@ export default function ServiceDetailsPage() {
 
         <Divider sx={{ my: 2 }} />
 
-        {/* CUSTOMER & DEVICE INFO */}
+        {/* CUSTOMER & DEVICE */}
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <Typography>
-              <strong>Customer:</strong> {service.customer_name}
+              <strong>Customer:</strong> {header.customer_name}
             </Typography>
             <Typography>
-              <strong>Phone:</strong> {service.phone || "-"}
+              <strong>Phone:</strong> {header.customer_phone}
             </Typography>
           </Grid>
 
           <Grid item xs={12} md={6}>
             <Typography>
-              <strong>Device Model:</strong> {service.device_model}
+              <strong>Device Model:</strong> {header.device_model}
             </Typography>
             <Typography>
-              <strong>IMEI:</strong> {service.imei || "-"}
+              <strong>IMEI:</strong> {header.imei || "-"}
             </Typography>
           </Grid>
         </Grid>
 
         <Divider sx={{ my: 2 }} />
 
-        {/* PROBLEM DETAILS */}
-        <Typography>
-          <strong>Problem Description</strong>
-        </Typography>
-        <Typography sx={{ mt: 1 }}>{service.problem}</Typography>
+        {/* PROBLEM */}
+        <Typography fontWeight={600}>Problem Description</Typography>
+        <Typography sx={{ mt: 1 }}>{header.problem}</Typography>
 
         <Divider sx={{ my: 2 }} />
 
-        {/* COST DETAILS */}
+        {/* COST */}
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Typography>
-              <strong>Estimated Cost:</strong> ₹ {service.estimated_cost || 0}
+              <strong>Estimated Cost:</strong> ₹ {header.estimated_cost || 0}
             </Typography>
           </Grid>
 
           <Grid item xs={6}>
             <Typography>
-              <strong>Advance Paid:</strong> ₹ {service.advance_amount || 0}
+              <strong>Advance Paid:</strong> ₹ {header.advance_amount || 0}
             </Typography>
           </Grid>
         </Grid>
@@ -124,12 +135,52 @@ export default function ServiceDetailsPage() {
 
         {/* TECHNICIAN */}
         <Typography>
-          <strong>Technician:</strong> {service.technician || "-"}
+          <strong>Technician:</strong> {header.technician || "-"}
         </Typography>
 
         <Typography sx={{ mt: 1 }}>
           <strong>Created At:</strong>{" "}
-          {new Date(service.created_at).toLocaleString()}
+          {new Date(header.created_at).toLocaleString()}
+        </Typography>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* SPARE PARTS */}
+        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+          Spare Parts Used
+        </Typography>
+
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Part</TableCell>
+              <TableCell align="right">Price</TableCell>
+              <TableCell align="right">Qty</TableCell>
+              <TableCell align="right">Amount</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {rows.map(
+              (r, i) =>
+                r.product_name && (
+                  <TableRow key={i}>
+                    <TableCell>{r.product_name}</TableCell>
+                    <TableCell align="right">₹ {r.price}</TableCell>
+                    <TableCell align="right">{r.quantity}</TableCell>
+                    <TableCell align="right">
+                      ₹ {(r.price * r.quantity).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                )
+            )}
+          </TableBody>
+        </Table>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Typography align="right" fontWeight={600}>
+          Parts Total: ₹ {partsTotal.toFixed(2)}
         </Typography>
 
         <Divider sx={{ my: 3 }} />
@@ -148,7 +199,8 @@ export default function ServiceDetailsPage() {
                   gstin: "33CDXPN6582Q1ZA",
                   phone: "9790000771",
                 },
-                service,
+                service: header,
+                items: rows.filter((r) => r.product_name),
                 action: "print",
               })
             }
@@ -156,8 +208,7 @@ export default function ServiceDetailsPage() {
             Print Service Sheet (A4)
           </Button>
 
-          {/* NEXT PHASE */}
-          <Button variant="contained" disabled={service.status !== "READY"}>
+          <Button variant="contained" disabled={header.status !== "READY"}>
             Create Final Invoice
           </Button>
         </Box>

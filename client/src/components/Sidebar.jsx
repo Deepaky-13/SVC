@@ -17,21 +17,21 @@ import customFetch from "../utils/customFetch";
 /* ================= MENU CONFIG ================= */
 const menu = [
   { label: "Dashboard", path: "/dashboard", permission: "dashboard_view" },
-  { label: "Settings", path: "/settings", permission: "settings_view" },
+  { label: "Products", path: "/products", permission: "products_view" },
+  { label: "Purchases", path: "/purchases", permission: "purchases_view" },
+  { label: "Sales", path: "/sales", permission: "sales_view" },
+  { label: "Services", path: "/services", permission: "services_view" },
+  { label: "Stocks", path: "/stocks", permission: "stocks_view" },
+  { label: "Categories", path: "/categories", permission: "categories_view" },
+  { label: "Customer", path: "/customers", permission: "customers_view" },
+  { label: "User Management", path: "/users", permission: "users_manage" },
   {
     label: "Roles & Permissions",
     path: "/access-control",
     permission: "access_manage",
   },
-  { label: "User Management", path: "/users", permission: "users_manage" },
 
-  { label: "Categories", path: "/categories", permission: "categories_view" },
-  { label: "Products", path: "/products", permission: "products_view" },
-  { label: "Purchases", path: "/purchases", permission: "purchases_view" },
-  { label: "Stocks", path: "/stocks", permission: "stocks_view" },
-
-  { label: "Sales", path: "/sales", permission: "sales_view" },
-  { label: "Services", path: "/services", permission: "services_view" },
+  { label: "Settings", path: "/settings", permission: "settings_view" },
 ];
 
 export default function Sidebar({ mobileOpen, onMobileClose }) {

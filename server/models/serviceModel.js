@@ -4,36 +4,53 @@ import db from "../db/database.js";
 export const createServiceJob = (data) =>
   new Promise((resolve, reject) => {
     const {
-      customer_name,
-      phone,
+      customer_id,
       device_model,
       imei,
       problem,
       estimated_cost,
       advance_amount,
       technician,
+      status = "RECEIVED",
     } = data;
 
     db.run(
       `
       INSERT INTO service_jobs
-      (customer_name, phone, device_model, imei, problem,
-       estimated_cost, advance_amount, technician)
+      (customer_id, device_model, imei, problem,
+       estimated_cost, advance_amount, technician, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        customer_name,
-        phone,
+        customer_id,
         device_model,
         imei,
         problem,
         estimated_cost,
         advance_amount,
         technician,
+        status,
       ],
       function (err) {
         if (err) reject(err);
         else resolve({ id: this.lastID });
+      }
+    );
+  });
+
+/* ADD SPARE PART */
+export const addServiceItem = ({ service_id, product_id, price, quantity }) =>
+  new Promise((resolve, reject) => {
+    db.run(
+      `
+      INSERT INTO service_items
+      (service_id, product_id, price, quantity)
+      VALUES (?, ?, ?, ?)
+      `,
+      [service_id, product_id, price, quantity],
+      function (err) {
+        if (err) reject(err);
+        else resolve(true);
       }
     );
   });
@@ -51,7 +68,7 @@ export const getAllServices = () =>
     );
   });
 
-/* UPDATE STATUS */
+/* UPDATE SERVICE STATUS */
 export const updateServiceStatus = (id, status) =>
   new Promise((resolve, reject) => {
     db.run(
@@ -63,19 +80,37 @@ export const updateServiceStatus = (id, status) =>
       }
     );
   });
-/* ---------------- GET SERVICE BY ID ---------------- */
 export const getServiceById = (id) =>
   new Promise((resolve, reject) => {
-    db.get(
-      `
-      SELECT *
-      FROM service_jobs
-      WHERE id = ?
-      `,
-      [id],
-      (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      }
-    );
+    const query = `
+      SELECT
+        sj.id,
+        sj.status,
+        sj.device_model,
+        sj.imei,
+        sj.problem,
+        sj.estimated_cost,
+        sj.advance_amount,
+        sj.technician,
+        sj.created_at,
+
+        c.name AS customer_name,
+        c.phone AS customer_phone,
+
+        p.name AS product_name,
+        si.price,
+        si.quantity
+
+      FROM service_jobs sj
+      JOIN customers c ON c.id = sj.customer_id
+      LEFT JOIN service_items si ON si.service_id = sj.id
+      LEFT JOIN products p ON p.id = si.product_id
+
+      WHERE sj.id = ?
+    `;
+
+    db.all(query, [id], (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
   });

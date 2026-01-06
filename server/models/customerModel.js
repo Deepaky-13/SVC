@@ -1,42 +1,41 @@
 import db from "../db/database.js";
 
-/* CREATE OR GET CUSTOMER */
-export const upsertCustomer = (name, phone) =>
+/* CREATE CUSTOMER */
+export const createCustomer = ({ name, phone }) =>
   new Promise((resolve, reject) => {
-    db.get(`SELECT * FROM customers WHERE phone = ?`, [phone], (err, row) => {
-      if (err) return reject(err);
-
-      if (row) return resolve(row);
-
-      db.run(
-        `
-          INSERT INTO customers (name, phone)
-          VALUES (?, ?)
-          `,
-        [name, phone],
-        function (err) {
-          if (err) reject(err);
-          else
-            resolve({
-              id: this.lastID,
-              name,
-              phone,
-            });
-        }
-      );
-    });
+    db.run(
+      `INSERT INTO customers (name, phone) VALUES (?, ?)`,
+      [name, phone],
+      function (err) {
+        if (err) reject(err);
+        else resolve({ id: this.lastID });
+      }
+    );
   });
 
-/* SEARCH CUSTOMER BY PHONE */
-export const searchCustomersByPhone = (phone) =>
+/* GET ALL CUSTOMERS */
+export const getAllCustomers = () =>
+  new Promise((resolve, reject) => {
+    db.all(
+      `SELECT * FROM customers ORDER BY created_at DESC`,
+      [],
+      (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      }
+    );
+  });
+
+/* SEARCH BY PHONE / NAME */
+export const searchCustomers = (q) =>
   new Promise((resolve, reject) => {
     db.all(
       `
       SELECT * FROM customers
-      WHERE phone LIKE ?
-      ORDER BY created_at DESC
+      WHERE name LIKE ? OR phone LIKE ?
+      LIMIT 10
       `,
-      [`%${phone}%`],
+      [`%${q}%`, `%${q}%`],
       (err, rows) => {
         if (err) reject(err);
         else resolve(rows);
@@ -44,38 +43,11 @@ export const searchCustomersByPhone = (phone) =>
     );
   });
 
-/* CUSTOMER PURCHASE HISTORY */
-export const getCustomerSales = (customerId) =>
+/* GET CUSTOMER DETAILS */
+export const getCustomerById = (id) =>
   new Promise((resolve, reject) => {
-    db.all(
-      `
-      SELECT *
-      FROM sales
-      WHERE customer_id = ?
-      ORDER BY created_at DESC
-      `,
-      [customerId],
-      (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
-  });
-
-/* CUSTOMER SERVICE HISTORY */
-export const getCustomerServices = (customerId) =>
-  new Promise((resolve, reject) => {
-    db.all(
-      `
-      SELECT *
-      FROM service_jobs
-      WHERE customer_id = ?
-      ORDER BY created_at DESC
-      `,
-      [customerId],
-      (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
+    db.get(`SELECT * FROM customers WHERE id = ?`, [id], (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
   });

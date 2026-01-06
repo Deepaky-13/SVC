@@ -5,21 +5,23 @@ import {
   getSaleById,
 } from "../models/salesModel.js";
 
+/* CREATE SALE */
 export const createSalesEntry = async (req, res) => {
   try {
-    const { customer_name, bill_no, items } = req.body;
+    const { customer_id, bill_no, items } = req.body;
 
-    if (!items || !items.length) {
+    if (!customer_id) return res.status(400).json({ msg: "Customer required" });
+
+    if (!items || !items.length)
       return res.status(400).json({ msg: "Sales items required" });
-    }
 
     const total_amount = items.reduce(
-      (sum, item) => sum + item.selling_price * item.quantity,
+      (sum, i) => sum + i.selling_price * i.quantity,
       0
     );
 
     const sale = await createSale({
-      customer_name,
+      customer_id,
       bill_no,
       total_amount,
     });
@@ -38,27 +40,19 @@ export const createSalesEntry = async (req, res) => {
       msg: "Sale created successfully",
       sale_id: sale.id,
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
+/* GET ALL SALES */
 export const fetchAllSales = async (req, res) => {
-  try {
-    const sales = await getAllSales();
-    res.json(sales);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  const sales = await getAllSales();
+  res.json(sales);
 };
 
+/* GET SALE DETAILS */
 export const fetchSaleDetails = async (req, res) => {
-  try {
-    const sale = await getSaleById(req.params.id);
-    console.log("Id", sale);
-
-    res.json(sale);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  const sale = await getSaleById(req.params.id);
+  res.json(sale);
 };

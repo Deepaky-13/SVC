@@ -1,12 +1,14 @@
 import express from "express";
 import {
-  searchCustomers,
-  fetchCustomerDetails,
+  addCustomer,
+  fetchCustomers,
+  fetchCustomer,
 } from "../controllers/customerController.js";
 
 const router = express.Router();
 
-router.get("/", searchCustomers);
-router.get("/:id/history", fetchCustomerDetails);
+router.post("/", addCustomer);
+router.get("/", fetchCustomers);
+router.get("/:id", fetchCustomer);
 
 export default router;

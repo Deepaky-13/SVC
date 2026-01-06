@@ -20,20 +20,31 @@ import { useEffect, useRef, useState } from "react";
 import customFetch from "../../utils/customFetch";
 
 export default function SalesForm({ open, onClose, onSuccess }) {
-  const [customerName, setCustomerName] = useState("");
+  /* ---------------- CUSTOMER ---------------- */
+  const [customers, setCustomers] = useState([]);
+  const [customerId, setCustomerId] = useState(null);
+
+  /* ---------------- BILL ---------------- */
   const [billNo, setBillNo] = useState("");
+
+  /* ---------------- ITEMS ---------------- */
   const [items, setItems] = useState([]);
   const [activeRow, setActiveRow] = useState(null);
 
-  // 🔍 Search states
+  /* ---------------- SEARCH ---------------- */
   const [searchText, setSearchText] = useState("");
   const [options, setOptions] = useState([]);
 
-  // 🔑 Keyboard refs
+  /* ---------------- REFS ---------------- */
   const priceRefs = useRef([]);
   const qtyRefs = useRef([]);
 
-  /* ---------------- FETCH SEARCH SUGGESTIONS ---------------- */
+  /* ---------------- LOAD CUSTOMERS ---------------- */
+  useEffect(() => {
+    customFetch.get("/customers").then((res) => setCustomers(res.data));
+  }, []);
+
+  /* ---------------- PRODUCT SEARCH ---------------- */
   useEffect(() => {
     if (!searchText || searchText.length < 2) {
       setOptions([]);
@@ -57,7 +68,6 @@ export default function SalesForm({ open, onClose, onSuccess }) {
     setItems((prev) => {
       const index = prev.findIndex((i) => i.product_id === product.id);
 
-      // SAME PRODUCT → QTY++
       if (index !== -1) {
         const updated = [...prev];
         updated[index].quantity += 1;
@@ -66,7 +76,6 @@ export default function SalesForm({ open, onClose, onSuccess }) {
         return updated;
       }
 
-      // NEW PRODUCT
       const updated = [
         ...prev,
         {
@@ -86,9 +95,10 @@ export default function SalesForm({ open, onClose, onSuccess }) {
     });
   };
 
-  /* ---------------- BARCODE ENTER HANDLING ---------------- */
+  /* ---------------- BARCODE ENTER ---------------- */
   const handleBarcodeEnter = async (e) => {
     if (e.key !== "Enter") return;
+
     const value = searchText.trim();
     if (!value) return;
 
@@ -120,7 +130,7 @@ export default function SalesForm({ open, onClose, onSuccess }) {
     setItems(items.filter((_, idx) => idx !== i));
   };
 
-  /* ---------------- CALCULATIONS ---------------- */
+  /* ---------------- TOTALS ---------------- */
   const rowAmount = (i) => {
     const base = i.price * i.quantity;
     const gstAmt = (base * i.gst) / 100;
@@ -139,27 +149,30 @@ export default function SalesForm({ open, onClose, onSuccess }) {
   );
   const netTotal = subTotal + gstTotal - discountTotal;
 
-  /* ---------------- SAVE ---------------- */
+  /* ---------------- SAVE SALE ---------------- */
   const handleSave = async () => {
-    if (!customerName || items.length === 0) {
-      alert("Customer & items required");
+    if (!customerId) {
+      alert("Please select customer");
+      return;
+    }
+
+    if (!items.length) {
+      alert("Add at least one product");
       return;
     }
 
     await customFetch.post("/sales", {
-      customer_name: customerName,
+      customer_id: customerId,
       bill_no: billNo,
-      total_amount: netTotal,
       items: items.map((i) => ({
         product_id: i.product_id,
         selling_price: i.price,
         quantity: i.quantity,
         gst: i.gst,
-        discount: i.discount,
       })),
     });
 
-    setCustomerName("");
+    setCustomerId(null);
     setBillNo("");
     setItems([]);
     setSearchText("");
@@ -176,22 +189,26 @@ export default function SalesForm({ open, onClose, onSuccess }) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [items, customerName]);
+  }, [items, customerId]);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle sx={{ fontWeight: 600 }}>🧾 New Sale</DialogTitle>
 
       <DialogContent>
-        {/* HEADER */}
+        {/* CUSTOMER & BILL */}
         <Paper sx={{ p: 2, mb: 2 }}>
           <Box display="flex" gap={2}>
-            <TextField
-              label="Customer Name"
+            <Autocomplete
               fullWidth
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
+              options={customers}
+              getOptionLabel={(c) => `${c.name} (${c.phone})`}
+              onChange={(e, val) => setCustomerId(val?.id || null)}
+              renderInput={(params) => (
+                <TextField {...params} label="Select Customer" />
+              )}
             />
+
             <TextField
               label="Bill No"
               fullWidth
@@ -201,7 +218,7 @@ export default function SalesForm({ open, onClose, onSuccess }) {
           </Box>
         </Paper>
 
-        {/* SEARCH / SCAN INPUT */}
+        {/* PRODUCT SEARCH */}
         <Paper
           sx={{
             p: 2,
@@ -214,16 +231,14 @@ export default function SalesForm({ open, onClose, onSuccess }) {
             freeSolo
             options={options}
             filterOptions={(x) => x}
-            getOptionLabel={(option) =>
-              typeof option === "string"
-                ? option
-                : `${option.name} (${option.brand || "-"})`
+            getOptionLabel={(o) =>
+              typeof o === "string" ? o : `${o.name} (${o.brand || "-"})`
             }
             inputValue={searchText}
-            onInputChange={(e, value) => setSearchText(value)}
-            onChange={(e, value) => {
-              if (value && typeof value !== "string") {
-                addProductToItems(value);
+            onInputChange={(e, v) => setSearchText(v)}
+            onChange={(e, v) => {
+              if (v && typeof v !== "string") {
+                addProductToItems(v);
                 setSearchText("");
                 setOptions([]);
               }
@@ -231,7 +246,7 @@ export default function SalesForm({ open, onClose, onSuccess }) {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Scan / Search (Name, Brand, Model, Barcode)"
+                label="Scan / Search Product"
                 autoFocus
                 onKeyDown={handleBarcodeEnter}
               />
@@ -336,7 +351,6 @@ export default function SalesForm({ open, onClose, onSuccess }) {
           </strong>
         </Box>
 
-        {/* ACTION */}
         <Box textAlign="right" mt={2}>
           <Button variant="contained" size="large" onClick={handleSave}>
             SAVE SALE

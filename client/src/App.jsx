@@ -23,10 +23,10 @@ import SalesDetailsPage from "./components/sales/SalesDetails";
 import ServicePage from "./pages/service/ServicePage";
 import ServiceDetails from "./components/service/ServiceDetails";
 
-// import CustomerPage from "./pages/customer/CustomerPage";
-// import CustomerDetailsPage from "./pages/customer/CustomerDetailsPage";
 import RolesAndPermissionPage from "./pages/roles&permissions/RolesAndPermissionPage";
 import UserPage from "./pages/users/UserPage";
+import CustomerPages from "./pages/customer/CustomerPages";
+import CustomerDetailsPage from "./pages/customer/CustomerDetailsPage";
 
 /* ================= ROUTER ================= */
 
@@ -169,22 +169,22 @@ const router = createBrowserRouter([
       },
 
       /* CUSTOMERS */
-      // {
-      //   path: "customers",
-      //   element: (
-      //     <ProtectedRoute permission="customers_view">
-      //       <CustomerPage />
-      //     </ProtectedRoute>
-      //   ),
-      // },
-      // {
-      //   path: "customers/:id",
-      //   element: (
-      //     <ProtectedRoute permission="customers_view">
-      //       <CustomerDetailsPage />
-      //     </ProtectedRoute>
-      //   ),
-      // },
+      {
+        path: "customers",
+        element: (
+          <ProtectedRoute permission="customers_view">
+            <CustomerPages />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "customers/:id",
+        element: (
+          <ProtectedRoute permission="customers_view">
+            <CustomerDetailsPage />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 

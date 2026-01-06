@@ -12,6 +12,7 @@ const SIDEBAR_PERMISSIONS = [
   { key: "stocks_view", label: "Stocks" },
   { key: "sales_view", label: "Sales" },
   { key: "services_view", label: "Services" },
+  { key: "customers_view", label: "Customers" },
 ];
 
 const ROLES = ["Admin", "Staff"];

@@ -1,104 +1,85 @@
-import { useEffect, useState } from "react";
+// components/services/ServiceList.jsx
 import {
   Table,
-  TableBody,
-  TableCell,
   TableHead,
   TableRow,
+  TableCell,
+  TableBody,
   Paper,
-  TableContainer,
   Chip,
+  IconButton,
   Select,
   MenuItem,
-  Typography,
-  IconButton,
 } from "@mui/material";
 import { Visibility } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import customFetch from "../../utils/customFetch";
 
-const STATUSES = ["RECEIVED", "IN_PROGRESS", "READY", "DELIVERED"];
+const STATUS_FLOW = ["RECEIVED", "IN_PROGRESS", "READY", "DELIVERED"];
 
-export default function ServiceList({ refresh }) {
+export default function ServiceList() {
   const [rows, setRows] = useState([]);
   const navigate = useNavigate();
 
-  const fetchServices = async () => {
-    const res = await customFetch.get("/services");
-    setRows(res.data);
-  };
-
-  const handleStatusChange = async (id, status) => {
-    await customFetch.patch(`/services/${id}/status`, { status });
-    fetchServices();
-  };
-
   useEffect(() => {
-    fetchServices();
-  }, [refresh]);
+    customFetch.get("/services").then((res) => setRows(res.data || []));
+  }, []);
+
+  const updateStatus = async (id, status) => {
+    await customFetch.patch(`/services/${id}/status`, { status });
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+  };
+
+  const nextStatuses = (current) =>
+    STATUS_FLOW.slice(STATUS_FLOW.indexOf(current));
 
   return (
-    <TableContainer component={Paper}>
-      <Typography sx={{ p: 2 }} variant="h6">
-        Service Jobs
-      </Typography>
-
+    <Paper>
       <Table size="small">
         <TableHead>
           <TableRow>
+            <TableCell>ID</TableCell>
             <TableCell>Customer</TableCell>
             <TableCell>Device</TableCell>
             <TableCell>Status</TableCell>
-            <TableCell>Created</TableCell>
-            <TableCell align="right">Action</TableCell>
+            <TableCell>Change</TableCell>
+            <TableCell />
           </TableRow>
         </TableHead>
 
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id} hover>
-              <TableCell>{row.customer_name}</TableCell>
-              <TableCell>{row.device_model}</TableCell>
-
+          {rows.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell>{r.id}</TableCell>
+              <TableCell>{r.customer_name}</TableCell>
+              <TableCell>{r.device_model}</TableCell>
+              <TableCell>
+                <Chip label={r.status} size="small" />
+              </TableCell>
               <TableCell>
                 <Select
                   size="small"
-                  value={row.status}
-                  onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                  value={r.status}
+                  disabled={r.status === "DELIVERED"}
+                  onChange={(e) => updateStatus(r.id, e.target.value)}
                 >
-                  {STATUSES.map((s) => (
+                  {nextStatuses(r.status).map((s) => (
                     <MenuItem key={s} value={s}>
                       {s}
                     </MenuItem>
                   ))}
                 </Select>
               </TableCell>
-
               <TableCell>
-                {new Date(row.created_at).toLocaleDateString()}
-              </TableCell>
-
-              {/* VIEW DETAILS */}
-              <TableCell align="right">
-                <IconButton
-                  color="primary"
-                  onClick={() => navigate(`/services/${row.id}`)}
-                >
+                <IconButton onClick={() => navigate(`/services/${r.id}`)}>
                   <Visibility />
                 </IconButton>
               </TableCell>
             </TableRow>
           ))}
-
-          {!rows.length && (
-            <TableRow>
-              <TableCell colSpan={5} align="center">
-                No service jobs found
-              </TableCell>
-            </TableRow>
-          )}
         </TableBody>
       </Table>
-    </TableContainer>
+    </Paper>
   );
 }

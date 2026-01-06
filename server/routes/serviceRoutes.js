@@ -1,15 +1,15 @@
 import express from "express";
 import {
   createService,
-  fetchServices,
-  changeServiceStatus,
+  fetchAllServices,
   fetchServiceDetails,
+  changeServiceStatus,
 } from "../controllers/serviceController.js";
 
 const router = express.Router();
 
 router.post("/", createService);
-router.get("/", fetchServices);
+router.get("/", fetchAllServices);
 router.get("/:id", fetchServiceDetails);
 router.patch("/:id/status", changeServiceStatus);
 

@@ -1,23 +1,24 @@
 import {
-  searchCustomersByPhone,
-  getCustomerSales,
-  getCustomerServices,
+  createCustomer,
+  getAllCustomers,
+  getCustomerById,
 } from "../models/customerModel.js";
 
-export const searchCustomers = async (req, res) => {
-  const { phone } = req.query;
-  const customers = await searchCustomersByPhone(phone || "");
+export const addCustomer = async (req, res) => {
+  const { name, phone } = req.body;
+  if (!name || !phone)
+    return res.status(400).json({ msg: "Name & phone required" });
+
+  const customer = await createCustomer({ name, phone });
+  res.json(customer);
+};
+
+export const fetchCustomers = async (req, res) => {
+  const customers = await getAllCustomers();
   res.json(customers);
 };
 
-export const fetchCustomerDetails = async (req, res) => {
-  const { id } = req.params;
-
-  const sales = await getCustomerSales(id);
-  const services = await getCustomerServices(id);
-
-  res.json({
-    sales,
-    services,
-  });
+export const fetchCustomer = async (req, res) => {
+  const customer = await getCustomerById(req.params.id);
+  res.json(customer);
 };
