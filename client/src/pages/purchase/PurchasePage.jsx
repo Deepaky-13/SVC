@@ -5,6 +5,7 @@ import PurchaseList from "../../components/purchase/PurchaseList";
 
 export default function PurchasePage() {
   const [open, setOpen] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   return (
     <Box>
@@ -20,11 +21,18 @@ export default function PurchasePage() {
           ADD PURCHASE
         </Button>
       </Box>
-      <PurchaseList />
+
+      {/* ✅ LIST */}
+      <PurchaseList refresh={refresh} />
+
+      {/* ✅ FORM */}
       <PurchaseForm
         open={open}
         onClose={() => setOpen(false)}
-        onSaved={() => setOpen(false)}
+        onSaved={() => {
+          setOpen(false);
+          setRefresh((prev) => !prev); // 🔥 REFRESH LIST
+        }}
       />
     </Box>
   );

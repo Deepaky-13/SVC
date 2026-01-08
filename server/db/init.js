@@ -39,6 +39,15 @@ const initDatabase = () => {
     )
   `);
 
+  db.run(`
+  CREATE TABLE IF NOT EXISTS user_permissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    permission_key TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )
+`);
+
   //* ---------------- CATEGORIES ----------------
   db.run(`
     CREATE TABLE IF NOT EXISTS categories (

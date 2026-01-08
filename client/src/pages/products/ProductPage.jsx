@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
 import ProductList from "../../components/products/ProductList";
 import ProductForm from "../../components/products/ProductForm";
 
@@ -8,42 +7,35 @@ export default function ProductPage() {
   const [editData, setEditData] = useState(null);
   const [refresh, setRefresh] = useState(false);
 
-  const handleAdd = () => {
-    setEditData(null);
-    setOpen(true);
-  };
-
-  const handleEdit = (row) => {
-    setEditData(row);
-    setOpen(true);
-  };
-
-  const handleSaved = () => {
-    setOpen(false);
-    setEditData(null);
-    setRefresh((prev) => !prev); // 🔥 refresh list
-  };
-
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" mb={2}>
-        <Typography variant="h5">Products</Typography>
+    <div className="space-y-4 p-3 sm:p-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-semibold">Products</h1>
+        <button
+          onClick={() => {
+            setEditData(null);
+            setOpen(true);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer"
+        >
+          + Add Product
+        </button>
+      </div>
 
-        <Button variant="contained" onClick={handleAdd}>
-          Add Product
-        </Button>
-      </Box>
+      <ProductList
+        onEdit={(row) => {
+          setEditData(row);
+          setOpen(true);
+        }}
+        refresh={refresh}
+      />
 
-      {/* PRODUCT LIST */}
-      <ProductList onEdit={handleEdit} refresh={refresh} />
-
-      {/* PRODUCT FORM */}
       <ProductForm
         open={open}
         onClose={() => setOpen(false)}
         editData={editData}
-        onSaved={handleSaved}
+        onSaved={() => setRefresh((p) => !p)}
       />
-    </Box>
+    </div>
   );
 }

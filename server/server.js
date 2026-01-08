@@ -16,6 +16,7 @@ import stockRoutes from "./routes/stockRoutes.js";
 import salesRoutes from "./routes/salesRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
+import userPermissionRoutes from "./routes/userPermissionRouter.js";
 
 dotenv.config();
 
@@ -52,7 +53,7 @@ app.use("/api/v1/stock", stockRoutes);
 app.use("/api/v1/sales", salesRoutes);
 app.use("/api/v1/services", serviceRoutes);
 app.use("/api/v1/customers", customerRoutes);
-
+app.use("/api/v1/user-permissions", userPermissionRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(` Server running on port ${PORT}`);

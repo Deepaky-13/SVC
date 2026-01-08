@@ -1,5 +1,20 @@
 import db from "../db/database.js";
 
+export const getNextInvoiceNo = () =>
+  new Promise((resolve, reject) => {
+    db.get(
+      `SELECT id FROM purchases ORDER BY id DESC LIMIT 1`,
+      [],
+      (err, row) => {
+        if (err) return reject(err);
+
+        const next = (row?.id || 0) + 1;
+        const year = new Date().getFullYear();
+        resolve(`PUR-${year}-${String(next).padStart(5, "0")}`);
+      }
+    );
+  });
+
 /* ---------------- CREATE PURCHASE ---------------- */
 export const createPurchase = (purchase, items) =>
   new Promise((resolve, reject) => {

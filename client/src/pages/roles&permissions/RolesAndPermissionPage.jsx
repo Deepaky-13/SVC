@@ -1,31 +1,32 @@
 import { useState } from "react";
 import RolesAndPermissionForm from "../../components/roles&permissions/RolesAndPermissionForm";
 import RolesAndPermissionList from "../../components/roles&permissions/RolesAndPermissionList";
+
 const RolesAndPermissionPage = () => {
-  const [editRole, setEditRole] = useState(null);
+  const [editUserId, setEditUserId] = useState(null);
   const [editPermissions, setEditPermissions] = useState([]);
   const [refresh, setRefresh] = useState(false);
 
   return (
     <div className="space-y-6">
       <RolesAndPermissionForm
-        editRole={editRole}
+        editUserId={editUserId}
         editPermissions={editPermissions}
         clearEdit={() => {
-          setEditRole(null);
+          setEditUserId(null);
           setEditPermissions([]);
         }}
         onSuccess={() => {
-          setRefresh(!refresh);
-          setEditRole(null);
+          setRefresh((p) => !p);
+          setEditUserId(null);
           setEditPermissions([]);
         }}
       />
 
       <RolesAndPermissionList
         refresh={refresh}
-        onEdit={(role, permissions) => {
-          setEditRole(role);
+        onEdit={(userId, permissions) => {
+          setEditUserId(userId);
           setEditPermissions(permissions);
         }}
       />
